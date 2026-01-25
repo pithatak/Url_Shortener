@@ -7,6 +7,12 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class UrlService
 {
+    private const EXPIRE_MAP = [
+        '1h' => '+1 hour',
+        '1d' => '+1 day',
+        '1t' => '+1 week',
+    ];
+
 
     public function __construct(private EntityManagerInterface $em)
     {
@@ -36,7 +42,9 @@ class UrlService
         $url->setOriginalUrl($data['url']);
         $url->setShortCode($alias);
         $url->setIsPublic($data['isPublic'] ?? false);
-        $url->setExpiresAt($data['expiresAt'] ?? null);
+        $expiresAt = $this->resolveExpiresAt($data['expire'] ?? '1h');
+
+        $url->setExpiresAt($expiresAt);
 
         $this->em->persist($url);
         $this->em->flush();
@@ -59,17 +67,30 @@ class UrlService
         ]);
 
         if (!$url) {
-            throw new \RuntimeException('Not 111found');
+            throw new \RuntimeException('Not found');
         }
-//TODO
-//        if (
-//            $url->getExpiresAt() !== null &&
-//            $url->getExpiresAt() < new \DateTimeImmutable()
-//        ) {
-//            throw new \RuntimeException('Expired');
-//        }
+
+        if (
+            $url->getExpiresAt() !== null &&
+            $url->getExpiresAt() < new \DateTimeImmutable()
+        ) {
+            throw new \RuntimeException('Expired');
+        }
 
         return $url;
+    }
+
+    private function resolveExpiresAt(?string $expire): ?\DateTimeImmutable
+    {
+        if (!$expire) {
+            return null;
+        }
+
+        if (!isset(self::EXPIRE_MAP[$expire])) {
+            throw new \RuntimeException('Invalid expire value');
+        }
+
+        return new \DateTimeImmutable(self::EXPIRE_MAP[$expire]);
     }
 
 }

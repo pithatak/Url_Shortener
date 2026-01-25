@@ -119,11 +119,7 @@ final class UrlController extends AbstractController
     #[Route('/{shortCode}', methods: ['GET'])]
     public function redirectByShortCode(string $shortCode, UrlService $urlService): RedirectResponse
     {
-        try {
-            $url = $urlService->resolveShortCode($shortCode);
-        } catch (\RuntimeException) {
-            throw $this->createNotFoundException();
-        }
+        $url = $urlService->resolveShortCode($shortCode);
 
         return new RedirectResponse(
             $url->getOriginalUrl(),
