@@ -93,4 +93,19 @@ class UrlService
         return new \DateTimeImmutable(self::EXPIRE_MAP[$expire]);
     }
 
+    public function click(Url $url): void
+    {
+        $url->incrementClicks();
+        $this->em->flush();
+    }
+
+    public function getStats(Url $url): array
+    {
+        return [
+            'id' => $url->getId(),
+            'createdAt' => $url->getCreatedAt()->format(DATE_ATOM),
+            'expiresAt' => $url->getExpiresAt()?->format(DATE_ATOM),
+            'clicks' => $url->getClicks(),
+        ];
+    }
 }

@@ -72,8 +72,11 @@ final class UrlController extends AbstractController
     }
 
     #[Route('/api/urls/{id}', methods: ['DELETE'])]
-    public function delete(int $id, Request $request, SessionRepository $sessionRepository,
-        UrlRepository $urls, UrlService $urlService
+    public function delete(
+        int               $id,
+        Request           $request,
+        SessionRepository $sessionRepository,
+        UrlRepository     $urls, UrlService $urlService
     ): JsonResponse
     {
         $sessionId = (int)$request->cookies->get('SESSION_ID');
@@ -120,10 +123,47 @@ final class UrlController extends AbstractController
     public function redirectByShortCode(string $shortCode, UrlService $urlService): RedirectResponse
     {
         $url = $urlService->resolveShortCode($shortCode);
+        $urlService->click($url);
 
         return new RedirectResponse(
             $url->getOriginalUrl(),
             302
         );
     }
+
+    #[Route('/api/urls/{id}/stats', methods: ['GET'])]
+    public function stats(
+        int               $id,
+        Request           $request,
+        SessionRepository $sessionRepository,
+        UrlRepository     $urls,
+        UrlService        $stats
+    ): JsonResponse
+    {
+
+        $sessionId = (int)$request->cookies->get('SESSION_ID');
+        if (!$sessionId) {
+            return $this->json(['error' => 'No session'], 401);
+        }
+
+        $session = $sessionRepository->find($sessionId);
+        if (!$session) {
+            return $this->json(['error' => 'Invalid session'], 401);
+        }
+
+        $url = $urls->findOneBy([
+            'id' => $id,
+            'session' => $session,
+            'deleted_at' => null,
+        ]);
+
+        if (!$url) {
+            return $this->json(['error' => 'Not found'], 404);
+        }
+
+        return $this->json(
+            $stats->getStats($url)
+        );
+    }
+
 }

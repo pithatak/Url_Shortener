@@ -32,6 +32,11 @@ class Session
         return $this->id;
     }
 
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
     public function getUrls(): Collection
     {
         return $this->urls;

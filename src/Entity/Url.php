@@ -32,6 +32,18 @@ class Url
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deleted_at = null;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $created_at = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $clicks = null;
+
+    public function __construct()
+    {
+        $this->clicks = 0;
+        $this->created_at = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -108,4 +120,27 @@ class Url
 
         return $this;
     }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->created_at;
+    }
+
+    public function getclicks(): ?int
+    {
+        return $this->clicks;
+    }
+
+    public function setclicks(?int $clicks): static
+    {
+        $this->clicks = $clicks;
+
+        return $this;
+    }
+
+    public function incrementClicks(): void
+    {
+        $this->clicks += 1;
+    }
+
 }
