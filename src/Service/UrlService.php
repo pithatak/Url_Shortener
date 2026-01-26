@@ -3,7 +3,9 @@
 namespace App\Service;
 
 use App\Entity\Url;
+use App\Message\UrlClickedMessage;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class UrlService
 {
@@ -14,7 +16,7 @@ class UrlService
     ];
 
 
-    public function __construct(private EntityManagerInterface $em)
+    public function __construct(private EntityManagerInterface $em, private MessageBusInterface $messageBus)
     {
     }
 
@@ -77,6 +79,13 @@ class UrlService
             throw new \RuntimeException('Expired');
         }
 
+        $this->messageBus->dispatch(
+            new UrlClickedMessage(
+                $url->getId(),
+                new \DateTimeImmutable()
+            )
+        );
+
         return $url;
     }
 
@@ -91,12 +100,6 @@ class UrlService
         }
 
         return new \DateTimeImmutable(self::EXPIRE_MAP[$expire]);
-    }
-
-    public function click(Url $url): void
-    {
-        $url->incrementClicks();
-        $this->em->flush();
     }
 
     public function getStats(Url $url): array

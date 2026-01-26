@@ -51,5 +51,12 @@ services:
             - postgres
         restart: unless-stopped
 
+    rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+            - "5672:5672"    # AMQP
+            - "15672:15672"  # Web UI
+
+
 volumes:
     postgres_data:

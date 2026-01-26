@@ -123,7 +123,6 @@ final class UrlController extends AbstractController
     public function redirectByShortCode(string $shortCode, UrlService $urlService): RedirectResponse
     {
         $url = $urlService->resolveShortCode($shortCode);
-        $urlService->click($url);
 
         return new RedirectResponse(
             $url->getOriginalUrl(),
