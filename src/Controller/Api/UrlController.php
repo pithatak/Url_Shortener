@@ -2,9 +2,9 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\Session;
 use App\Repository\SessionRepository;
 use App\Repository\UrlRepository;
+use App\Service\JwtService;
 use App\Service\UrlService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,7 +15,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class UrlController extends AbstractController
 {
-
     #[Route('/api/urls', methods: ['POST'])]
     public function create(
         Request            $request,
@@ -24,23 +23,18 @@ final class UrlController extends AbstractController
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire(
             service: 'limiter.url_create'
         )]
-        RateLimiterFactory $rateLimiterFactory
-    ): JsonResponse
-    {
-        $sessionId = (int)$request->cookies->get('SESSION_ID');
-        $limiter = $rateLimiterFactory->create((string)$sessionId);
+        RateLimiterFactory $rateLimiterFactory,
+        JwtService $jwt,
+    ): JsonResponse {
+        try {
+            $session = $this->getSession($jwt, $sessionRepository);
+        } catch (\Throwable) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
 
+        $limiter = $rateLimiterFactory->create((string)$session->getId());
         if (!$limiter->consume()->isAccepted()) {
             return $this->json(['error' => 'Too many requests'], 429);
-        }
-
-        if (!$sessionId) {
-            return $this->json(['error' => 'No session'], 401);
-        }
-
-        $session = $sessionRepository->find($sessionId);
-        if (!$session) {
-            return $this->json(['error' => 'Invalid session'], 401);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -61,16 +55,12 @@ final class UrlController extends AbstractController
     }
 
     #[Route('/api/urls', methods: ['GET'])]
-    public function list(Request $request, SessionRepository $sessionRepository, UrlRepository $urls): JsonResponse
+    public function list(SessionRepository $sessionRepository, UrlRepository $urls, JwtService $jwt): JsonResponse
     {
-        $sessionId = (int)$request->cookies->get('SESSION_ID');
-        if (!$sessionId) {
-            return $this->json(['error' => 'No session'], 401);
-        }
-
-        $session = $sessionRepository->find($sessionId);
-        if (!$session) {
-            return $this->json(['error' => 'Invalid session'], 401);
+        try {
+            $session = $this->getSession($jwt, $sessionRepository);
+        } catch (\Throwable) {
+            return $this->json(['error' => 'Unauthorized'], 401);
         }
 
         $list = $urls->findBy([
@@ -90,19 +80,16 @@ final class UrlController extends AbstractController
     #[Route('/api/urls/{id}', methods: ['DELETE'])]
     public function delete(
         int               $id,
-        Request           $request,
         SessionRepository $sessionRepository,
-        UrlRepository     $urls, UrlService $urlService
+        UrlRepository     $urls,
+        UrlService $urlService,
+        JwtService $jwt,
     ): JsonResponse
     {
-        $sessionId = (int)$request->cookies->get('SESSION_ID');
-        if (!$sessionId) {
-            return $this->json(['error' => 'No session'], 401);
-        }
-
-        $session = $sessionRepository->find($sessionId);
-        if (!$session) {
-            return $this->json(['error' => 'Invalid session'], 401);
+        try {
+            $session = $this->getSession($jwt, $sessionRepository);
+        } catch (\Throwable) {
+            return $this->json(['error' => 'Unauthorized'], 401);
         }
 
         $url = $urls->find($id);
@@ -149,21 +136,16 @@ final class UrlController extends AbstractController
     #[Route('/api/urls/{id}/stats', methods: ['GET'])]
     public function stats(
         int               $id,
-        Request           $request,
         SessionRepository $sessionRepository,
         UrlRepository     $urls,
-        UrlService        $stats
+        UrlService        $stats,
+        JwtService $jwt,
     ): JsonResponse
     {
-
-        $sessionId = (int)$request->cookies->get('SESSION_ID');
-        if (!$sessionId) {
-            return $this->json(['error' => 'No session'], 401);
-        }
-
-        $session = $sessionRepository->find($sessionId);
-        if (!$session) {
-            return $this->json(['error' => 'Invalid session'], 401);
+        try {
+            $session = $this->getSession($jwt, $sessionRepository);
+        } catch (\Throwable) {
+            return $this->json(['error' => 'Unauthorized'], 401);
         }
 
         $url = $urls->findOneBy([
@@ -181,4 +163,21 @@ final class UrlController extends AbstractController
         );
     }
 
+    private function getSession(JwtService $jwt, SessionRepository $sessions)
+    {
+        $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        if (!str_starts_with($header, 'Bearer ')) {
+            throw new \RuntimeException();
+        }
+
+        $token = substr($header, 7);
+        $sessionId = $jwt->getSessionId($token);
+
+        $session = $sessions->find($sessionId);
+        if (!$session) {
+            throw new \RuntimeException();
+        }
+
+        return $session;
+    }
 }
