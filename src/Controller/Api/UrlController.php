@@ -2,10 +2,10 @@
 
 namespace App\Controller\Api;
 
-use App\Controller\UrlViewFactory\UrlViewFactory;
 use App\Repository\UrlRepository;
 use App\Service\SessionAuthService;
 use App\Service\UrlService;
+use App\ViewFactory\UrlViewFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;

@@ -38,50 +38,6 @@ This will:
 * build PHP, Nginx, RabbitMQ and PostgreSQL containers
 * start all required services
 
-### 3. Enter the PHP container
-
-```bash
-docker compose exec php bash
-```
-
-All following commands are executed **inside the PHP container**.
-
-### 4. Install PHP dependencies
-
-```bash
-composer install
-```
-
-### 5. Configure environment
-
-Make sure `.env` (or `.env.local`) contains correct database credentials, for example:
-
-```env
-DATABASE_URL="postgresql://postgres:postgres@postgres:5432/postgres?serverVersion=16"
-JWT_SECRET=your_secret_key
-```
-
-### 6. Run database migrations
-
-```bash
-php bin/console doctrine:migrations:migrate
-```
-
-This will create all required tables.
-
-### 7. (Optional but recommended) Run Messenger worker
-
-To properly track link clicks asynchronously, run the worker:
-
-```bash
-php bin/console messenger:consume async -vv
-```
-
-Without the worker:
-
-* redirects will still work
-* click counters **will not be updated**
-
 ---
 
 ## API Usage

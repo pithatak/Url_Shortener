@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\UrlViewFactory;
+namespace App\ViewFactory;
 
 use App\Entity\Url;
 
