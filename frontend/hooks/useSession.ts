@@ -1,19 +1,26 @@
 import { useState } from "react";
-import { createSession } from "@/services/session.service";
+import { SessionService } from "@/services/session.service";
+import { Session } from "@/types/session";
 
 export function useSession() {
-    const [session, setSession] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [token, setToken] = useState("");
+    const [session, setSession] = useState<Session | null>(null);
 
-    async function create() {
-        setLoading(true);
-        try {
-            const data = await createSession();
-            setSession(data);
-        } finally {
-            setLoading(false);
-        }
-    }
+    const createSession = async () => {
+        const { token } = await SessionService.create();
+        setToken(token);
+    };
 
-    return { session, loading, create };
+    const loadSession = async () => {
+        if (!token) return;
+        const data = await SessionService.get(token);
+        setSession(data);
+    };
+
+    return {
+        token,
+        session,
+        createSession,
+        loadSession,
+    };
 }
