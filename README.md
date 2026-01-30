@@ -124,6 +124,15 @@ Content-Type: application/json
 * private URLs require authentication to access stats
 * Rate limit: max 10 links / minute / session
 
+**Response:**
+
+```json
+{
+  "id": "1",
+  "shortUrl": "http://localhost:57000/shortUrl"
+}
+```
+
 ---
 
 ### 2. Show list of own links
@@ -145,6 +154,18 @@ Content-Type: application/json
 
 * Doesn't show deleted links.
 
+**Response:**
+
+```json
+{
+  "id": "1",
+  "originalUrl": "http://localhost:57000/originalUrl",
+  "shortUrl": "alias",
+  "isPublic": "true/false",
+  "expiresAt": "2026-01-26T21:40:00+00:00"
+}
+```
+
 ---
 
 ### 3. Get link statistics
@@ -163,6 +184,17 @@ Authorization: Bearer <JWT_TOKEN>
 
 Returns click count and metadata. Access is restricted to the session owner unless the URL is public.
 
+**Response:**
+
+```json
+{
+  "id": "1",
+  "createdAt": "2025-01-26T21:40:00+00:00",
+  "expiresAt": "2026-01-26T21:40:00+00:00",
+  "clicks": "0"
+}
+```
+
 ---
 
 ### 4. Delete link
@@ -170,7 +202,7 @@ Returns click count and metadata. Access is restricted to the session owner unle
 **Endpoint:**
 
 ```
-GET /api/urls/{lini_id}
+DELETE /api/urls/{link_id}
 ```
 
 **Headers:**
@@ -181,6 +213,14 @@ Authorization: Bearer <JWT_TOKEN>
 
 * Performs "soft delete"
 
+**Response:**
+
+```json
+{
+  "status": "deleted"
+}
+```
+
 ---
 
 ### 5. Show list of public links
@@ -189,6 +229,18 @@ Authorization: Bearer <JWT_TOKEN>
 
 ```
 GET /api/public 
+```
+
+**Response:**
+
+```json
+{
+  "id": "1",
+  "originalUrl": "http://localhost:57000/originalUrl",
+  "shortCode": "alias",
+  "isPublic": "true/false",
+  "expiresAt": "2026-01-26T21:40:00+00:00"
+}
 ```
 
 ---
