@@ -77,7 +77,7 @@ services:
             - postgres
         restart: unless-stopped
 
-    nextjs:
+    next-js:
       container_name: next-js
       build:
         context: ./
@@ -91,5 +91,6 @@ services:
       depends_on:
         - php-fpm
       restart: unless-stopped
+
 volumes:
     postgres_data:

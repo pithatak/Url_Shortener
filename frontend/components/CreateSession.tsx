@@ -1,25 +1,34 @@
 "use client";
 
-import {useSession} from "@/hooks/useSession";
+type Props = {
+    onToken: (token: string) => void;
+};
 
-export function CreateSession() {
-    const {session, loading, create} = useSession();
+export function CreateSession({onToken}: Props) {
+    const createSession = async () => {
+        try {
+            const res = await fetch("http://host.docker.internal:57000/api/session", {
+                method: "POST",
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to create session");
+            }
+
+            const data = await res.json();
+            onToken(data.token);
+        } catch (e) {
+            console.error(e);
+            alert("Error creating session");
+        }
+    };
 
     return (
-        <div className="flex items-center gap-4">
-            <button
-                onClick={create}
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
-                {loading ? "Creating..." : "Create session"}
-            </button>
-
-            {session && (
-                <span className="text-sm text-gray-600">
-          Created at {new Date(session.createdAt).toLocaleString()}
-        </span>
-            )}
-        </div>
+        <button
+            onClick={createSession}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+            Create session
+        </button>
     );
 }

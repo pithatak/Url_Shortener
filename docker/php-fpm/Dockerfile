@@ -24,4 +24,7 @@ RUN pecl install amqp \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY docker/php-fpm/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh \
+    && sed -i 's/\r$//' /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
