@@ -1,10 +1,14 @@
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "./api";
+import { Session } from "@/types/session";
 
-export async function createSession() {
-    const res = await apiFetch(
-        "http://host.docker.internal:57000/api/session",
-        { method: "POST" }
-    );
+export const SessionService = {
+    create(): Promise<{ token: string }> {
+        return apiFetch("/session", { method: "POST" });
+    },
 
-    return res.json();
-}
+    get(token: string): Promise<Session> {
+        return apiFetch("/session", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+    },
+};
