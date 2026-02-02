@@ -19,6 +19,7 @@ export function useSession() {
 
     return {
         token,
+        setToken,
         session,
         createSession,
         loadSession,

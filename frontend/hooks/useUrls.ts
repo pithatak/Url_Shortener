@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { UrlsService } from "@/services/urls.service";
-import { UrlItem } from "@/types/url";
+import {useEffect, useState} from "react";
+import {UrlsService} from "@/services/urls.service";
+import {UrlItem} from "@/types/url";
 
 export function useUrls(token: string) {
     const [mode, setMode] = useState<"public" | "private">("public");
@@ -26,10 +26,28 @@ export function useUrls(token: string) {
         setUrls(prev => prev.filter(u => u.id !== id));
     };
 
+    const reload = async () => {
+        const data =
+            mode === "public"
+                ? await UrlsService.getPublic()
+                : await UrlsService.getPrivate(token);
+
+        setUrls(data);
+    };
+
+    const showStats = async (url: UrlItem) => {
+        const data = await UrlsService.stats(url.id, token);
+        alert(
+            `ID: ${data.id}\nClicks: ${data.clicks}\nCreated: ${data.createdAt}`
+        );
+    };
+
     return {
         mode,
         setMode,
         urls,
         deleteUrl,
+        reload,
+        showStats
     };
 }

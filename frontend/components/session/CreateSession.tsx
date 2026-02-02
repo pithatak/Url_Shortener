@@ -1,16 +1,25 @@
 "use client";
+import { useState } from "react";
 
 type Props = {
-    onCreate: () => Promise<void> | void;
+    onCreate: () => Promise<void>;
 };
 
 export function CreateSession({ onCreate }: Props) {
+    const [loading, setLoading] = useState(false);
+
+    const handleClick = async () => {
+        setLoading(true);
+        await onCreate();
+        setLoading(false);
+    };
+
     return (
-        <button
-            onClick={onCreate}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        <button onClick={handleClick} disabled={loading}
+            className="px-4 py-3 rounded text-white font-semibold bg-blue-600 hover:bg-blue-700
+            disabled:opacity-50 transition"
         >
-            Create session
+            {loading ? "Creating session..." : "Create session"}
         </button>
     );
 }
